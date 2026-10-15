@@ -48,15 +48,15 @@ export function QuoteDetails({
         : 'text-crimson'
 
   return (
-    <div className="animate-slide-in mt-3 rounded-panels border border-frost bg-white px-4 py-3">
+    <div className="animate-slide-in rounded-buttons border border-frost bg-white px-4 py-3">
       <button
         type="button"
         onClick={() => setExpanded((value) => !value)}
         aria-expanded={expanded}
         className="flex w-full items-center justify-between gap-3 text-left"
       >
-        <span className="flex min-w-0 items-center gap-1.5 text-body-sm text-slate">
-          <span className="shrink-0 text-midnight-ink">
+        <span className="flex min-w-0 items-center gap-1.5 text-label leading-label tracking-label text-slate">
+          <span className="truncate text-midnight-ink">
             1 {symbolIn} = {formatPrice(route.executionRate)} {symbolOut}
           </span>
           <svg
@@ -68,11 +68,11 @@ export function QuoteDetails({
           >
             <path d="M4 6.5L8 10.5l4-4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          {isFetching ? <span className="tnum text-caption text-ash">updating…</span> : null}
+          {isFetching ? <span className="tnum shrink-0 text-caption text-ash">updating…</span> : null}
         </span>
       </button>
 
-      <dl className="mt-3 space-y-2 text-body-sm">
+      <dl className="mt-3 space-y-2 text-label leading-label tracking-label">
         <Row label={`Minimum received (slippage ${(slippageBps / 100).toFixed(2)}%)`} value={minReceivedText} />
         <Row
           label="Price impact"

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Logo } from '@/components/brand/logo'
+import { ArrowUpRight, Logo } from '@/components/brand/logo'
 import { Kbd } from '@/components/ui/copy-button'
 import { ChainBadgeButton } from '@/components/wallet/chain-menu'
 import { WalletButton } from '@/components/wallet/wallet-button'
 import { useActiveChainId } from '@/hooks/use-active-chain'
+import { LIVE_URL } from '@/config/site'
 import { SearchCommand } from './search-command'
 import { cn } from '@/lib/utils'
 
@@ -116,6 +117,21 @@ export function NavBar() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* The design system's secondary action: a ghost pill beside the one
+                filled CTA, pointing at the deployed app. */}
+            <a
+              href={LIVE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className={cn(
+                'hidden h-9 items-center gap-1 rounded-pills border border-carbon px-3.5',
+                'text-body-sm font-medium text-midnight-ink transition-colors duration-150 hover:bg-frost xl:inline-flex',
+              )}
+            >
+              Live app
+              <ArrowUpRight className="size-3" />
+            </a>
+
             <button
               type="button"
               onClick={() => setSearchOpen(true)}

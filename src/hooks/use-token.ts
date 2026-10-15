@@ -115,17 +115,27 @@ export function useTokenBalances(
   owner: Address | undefined,
   chainId: number | undefined,
 ): Record<string, bigint> {
+  // Normalise first: a single non-checksummed address makes viem reject the whole
+  // aggregate call, which would silently zero out *every* balance in the list.
+  const targets = useMemo(
+    () =>
+      tokens
+        .map((token) => normalizeAddress(token.address))
+        .filter((address): address is Address => address !== null),
+    [tokens],
+  )
+
   const { data } = useReadContracts({
     allowFailure: true,
     query: {
-      enabled: Boolean(owner && chainId && tokens.length > 0),
+      enabled: Boolean(owner && chainId && targets.length > 0),
       staleTime: 15_000,
       refetchInterval: 30_000,
     },
     contracts:
       owner && chainId
-        ? tokens.map((token) => ({
-            address: token.address,
+        ? targets.map((address) => ({
+            address,
             abi: erc20Abi,
             functionName: 'balanceOf',
             args: [owner],
@@ -136,14 +146,14 @@ export function useTokenBalances(
   return useMemo(() => {
     const balances: Record<string, bigint> = {}
     if (!data) return balances
-    tokens.forEach((token, index) => {
+    targets.forEach((address, index) => {
       const result = data[index]
       if (result?.status === 'success') {
-        balances[token.address.toLowerCase()] = result.result as bigint
+        balances[address.toLowerCase()] = result.result as bigint
       }
     })
     return balances
-  }, [data, tokens])
+  }, [data, targets])
 }
 
 /** Allowance the router holds over the user's input token. */
@@ -153,18 +163,19 @@ export function useTokenAllowance(
   chainId: number | undefined,
 ): { allowance: bigint | undefined; isLoading: boolean } {
   const spender = getDeployment(chainId)?.swapRouter02
+  const normalizedToken = token ? normalizeAddress(token) : null
 
   const { data, isPending } = useReadContracts({
     allowFailure: true,
     query: {
-      enabled: Boolean(token && owner && spender),
+      enabled: Boolean(normalizedToken && owner && spender),
       staleTime: 10_000,
     },
     contracts:
-      token && owner && spender
+      normalizedToken && owner && spender
         ? [
             {
-              address: token,
+              address: normalizedToken,
               abi: erc20Abi,
               functionName: 'allowance',
               args: [owner, spender],

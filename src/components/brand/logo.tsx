@@ -57,3 +57,19 @@ export function Chevron({ className }: { className?: string }) {
     </svg>
   )
 }
+
+/** Arrow for outbound links (live app, docs, explorers). */
+export function ArrowUpRight({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className={cn('size-3.5', className)}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden
+    >
+      <path d="M5 11L11 5M11 5H6M11 5v5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}

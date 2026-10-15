@@ -130,15 +130,13 @@ export function SwapCard() {
     inputRef.current?.focus()
   }
 
-  const priceHint = quote.route ? (
-    <>
-      {formatTokenAmount(quote.route.amountOut, state.tokenOut.decimals)}{' '}
-      {state.tokenOut.symbol}
-      {quote.isFetching ? <span className="ml-1 text-ash">· updating</span> : null}
-    </>
-  ) : (
-    'No route yet — enter an amount'
-  )
+  // The receive line must not repeat the amount above it, so it states the value
+  // in the other unit: dollars for a stablecoin output, otherwise the input's rate.
+  const outHint = quote.route
+    ? isDollarish(state.tokenOut)
+      ? formatPrice(Number(quote.route.amountOut) / 10 ** state.tokenOut.decimals, { currency: true })
+      : `${formatPrice(quote.route.executionRate)} ${state.tokenIn.symbol} per ${state.tokenOut.symbol}`
+    : 'No route yet — enter an amount'
 
   const inputHint =
     state.amountIn.length === 0
@@ -152,24 +150,22 @@ export function SwapCard() {
   return (
     <div className="w-full">
       <div className="relative rounded-cards border border-frost bg-white p-4 shadow-[0_0_10px_0_rgba(19,19,19,0.0031)]">
-        <div className="absolute top-3 right-3 z-10">
-          <button
-            type="button"
-            onClick={settings.toggle}
-            aria-label="Swap settings"
-            className="grid size-8 place-items-center rounded-full text-ash transition-colors hover:bg-frost hover:text-midnight-ink"
-          >
-            <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.4">
-              <circle cx="10" cy="10" r="2.6" />
-              <path
-                d="M10 2.5v2M10 15.5v2M17.5 10h-2M4.5 10h-2M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4M15.3 15.3l-1.4-1.4M6.1 6.1L4.7 4.7"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
+        {/* Settings sits on the card's padding line, aligned to the panels' edge. */}
+        <button
+          type="button"
+          onClick={settings.toggle}
+          aria-label="Swap settings"
+          className="absolute top-4 right-4 z-10 grid size-7 place-items-center rounded-full text-ash transition-colors hover:bg-frost hover:text-midnight-ink"
+        >
+          {/* Sliders read as "settings" far more reliably than a cog at 16px. */}
+          <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M3 7h9M15.5 7H17M3 13h1.5M8 13h9" strokeLinecap="round" />
+            <circle cx="13.5" cy="7" r="1.75" />
+            <circle cx="6" cy="13" r="1.75" />
+          </svg>
+        </button>
 
-        <div className="space-y-2">
+        <div>
           <AmountPanel
             side="in"
             label="You pay"
@@ -186,13 +182,18 @@ export function SwapCard() {
             ref={inputRef}
           />
 
-          <div className="relative flex justify-center">
+          {/* Both panels are `relative` (for their loading overlays) and this row
+              comes first in paint order, so the connector needs its own
+              stacking context to sit on top of the panel edges it overlaps. */}
+          <div className="relative z-10 -my-3 flex justify-center">
             <button
               type="button"
               onClick={swapTokens}
               aria-label="Flip the token pair"
+              title="Flip the token pair"
               className={cn(
-                'group -mt-3 grid size-9 place-items-center rounded-full border border-frost bg-white text-slate',
+                'grid size-9 place-items-center rounded-full border border-frost bg-white text-slate',
+                'shadow-[0_0_10px_0_rgba(19,19,19,0.0031)]',
                 'transition-all duration-150 hover:border-vertex hover:text-vertex-deep active:rotate-180',
               )}
             >
@@ -210,22 +211,24 @@ export function SwapCard() {
             value={amountOutText}
             onSelectToken={() => openPicker('out')}
             balance={balanceOut}
-            hint={priceHint}
+            hint={outHint}
             isLoading={quote.isPending || quote.isFetching}
             readOnly
           />
 
-          <QuoteDetails
-            route={quote.route}
-            slippageBps={state.slippageBps}
-            quoteDurationMs={quote.durationMs}
-            blockNumber={quote.blockNumber}
-            isFetching={quote.isFetching}
-            chainId={routableChain}
-            decimalsOut={state.tokenOut.decimals}
-            symbolIn={state.tokenIn.symbol}
-            symbolOut={state.tokenOut.symbol}
-          />
+          <div className="mt-2">
+            <QuoteDetails
+              route={quote.route}
+              slippageBps={state.slippageBps}
+              quoteDurationMs={quote.durationMs}
+              blockNumber={quote.blockNumber}
+              isFetching={quote.isFetching}
+              chainId={routableChain}
+              decimalsOut={state.tokenOut.decimals}
+              symbolIn={state.tokenIn.symbol}
+              symbolOut={state.tokenOut.symbol}
+            />
+          </div>
 
           <ActionButton
             isConnected={isConnected}

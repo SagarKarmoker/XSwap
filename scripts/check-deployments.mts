@@ -1,9 +1,13 @@
 /**
  * Deployment check.
  *
- * `src/config/chains.ts` hardcodes factory / quoter / router addresses. This
- * script proves each one still exists and that a real quote flows through it, so
- * a bad address shows up here instead of as an empty quote in the UI.
+ * Two classes of hardcoded data can rot, and both fail quietly in the UI:
+ *   1. DEX addresses — a wrong factory/quoter/router means no route at all.
+ *   2. Token addresses — a wrong *checksum* kills the entire balances multicall,
+ *      and a wrong address silently balances the wrong contract.
+ *
+ * So this verifies the deployments with a real quote, then re-checks every
+ * curated token for EIP-55 validity plus its live symbol and decimals.
  *
  *   pnpm check:deployments
  */
@@ -12,8 +16,8 @@ import { getDeployment, supportedChains } from '../src/config/chains'
 import { listTokens } from '../src/config/tokens'
 import { rpcUrls } from '../src/config/env'
 import { createConfig, http } from 'wagmi'
-import { fallback } from 'viem'
-import { getBytecode } from 'viem/actions'
+import { fallback, getAddress, parseAbi } from 'viem'
+import { getBytecode, readContract } from 'viem/actions'
 import type { Address } from 'viem'
 
 const config = createConfig({
@@ -106,8 +110,60 @@ for (const chain of supportedChains) {
   )
 }
 
+// --- curated tokens: checksum + live metadata -------------------------------
+const erc20Abi = parseAbi([
+  'function symbol() view returns (string)',
+  'function decimals() view returns (uint8)',
+])
+
+for (const chain of supportedChains) {
+  const chainId = chain.id
+  const client = clientFor(chainId) as Parameters<typeof readContract>[0]
+  const tokens = listTokens(chainId)
+  const problems: string[] = []
+
+  for (const token of tokens) {
+    let canonical: Address
+    try {
+      canonical = getAddress(token.address)
+      if (canonical !== token.address) {
+        problems.push(`${token.symbol}: non-canonical checksum, use ${canonical}`)
+        continue
+      }
+    } catch {
+      problems.push(`${token.symbol}: invalid checksum (${token.address})`)
+      continue
+    }
+
+    try {
+      const [symbol, decimals] = await Promise.all([
+        readContract(client, { address: canonical, abi: erc20Abi, functionName: 'symbol' }),
+        readContract(client, { address: canonical, abi: erc20Abi, functionName: 'decimals' }),
+      ])
+
+      const liveSymbol = String(symbol)
+      const expected = [token.symbol, ...(token.symbolAliases ?? [])]
+      if (!expected.includes(liveSymbol)) {
+        problems.push(`${token.symbol}: on-chain symbol is "${liveSymbol}"`)
+      }
+      if (Number(decimals) !== token.decimals) {
+        problems.push(`${token.symbol}: on-chain decimals is ${String(decimals)}, config says ${token.decimals}`)
+      }
+    } catch (error) {
+      problems.push(`${token.symbol}: read failed — ${(error as Error).message.split('\n')[0].slice(0, 70)}`)
+    }
+  }
+
+  if (problems.length > 0) failures += 1
+  console.log(
+    `${problems.length === 0 ? 'PASS' : 'FAIL'}  ${`tokens ${chain.name}`.padEnd(22)} ${tokens.length} checked${
+      problems.length ? `\n      ${problems.join('\n      ')}` : ''
+    }`,
+  )
+}
+
 if (failures > 0) {
-  console.error(`\n${failures} chain(s) failed — check src/config/chains.ts`)
+  console.error(`\n${failures} check(s) failed — see src/config/chains.ts and src/config/tokens.ts`)
   process.exit(1)
 }
-console.log('\nAll deployments routable.')
+console.log('\nAll deployments routable, all curated tokens verified.')

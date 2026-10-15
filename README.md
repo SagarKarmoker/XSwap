@@ -1,5 +1,7 @@
 # XSwap
 
+**Live app → https://xswap.netlify.app/** · © Sagar Karmoker and XSwap
+
 **Swap any token X for any token Y.** XSwap is a swap interface that quotes and settles trades on Uniswap v3 across
 Ethereum, Arbitrum, Base and OP — with a green/jade take on the reference design system in [`design.md`](./design.md).
 
@@ -176,4 +178,6 @@ src/
 - **No indexer.** The markets table shows live pool state, not 24h volume or TVL, because nothing here can prove those
   numbers without a paid data source.
 
-## Not affiliated with Uniswap Labs
+## Licence and attribution
+
+© Sagar Karmoker and XSwap. XSwap is an unofficial interface and is not affiliated with Uniswap Labs.

@@ -52,6 +52,17 @@
   --leading-caption: 1.33;
   --tracking-caption: -0.22px;
 
+  /* Panel labels and secondary lines (the swap card's small text tier). */
+  --text-label: 12px;
+  --leading-label: 1.33;
+  --tracking-label: -0.24px;
+
+  /* The swap card's amount: 36px on the 1.11 line height the system uses for
+     display type, with the matching -0.02em tracking. */
+  --text-amount: 36px;
+  --leading-amount: 1.11;
+  --tracking-amount: -0.72px;
+
   --text-body-sm: 13px;
   --leading-body-sm: 1.38;
   --tracking-body-sm: -0.26px;

@@ -1,6 +1,7 @@
-import { Wordmark } from '@/components/brand/logo'
+import { ArrowUpRight, Wordmark } from '@/components/brand/logo'
 import { Orbs } from '@/components/brand/orbs'
 import { supportedChains, shortChainName } from '@/config/chains'
+import { COPYRIGHT, LIVE_URL } from '@/config/site'
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -77,8 +78,22 @@ export function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col gap-3 border-t border-frost pt-6 text-caption text-slate sm:flex-row sm:items-center sm:justify-between">
-          <p>XSwap is an unofficial interface. Not affiliated with Uniswap Labs.</p>
-          <p>Quotes are read from the chain; nothing is stored server-side.</p>
+          <p className="text-midnight-ink">{COPYRIGHT}</p>
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <a
+              href={LIVE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 underline decoration-transparent underline-offset-4 transition-colors hover:decoration-midnight-ink"
+            >
+              xswap.netlify.app
+              <ArrowUpRight className="size-3" />
+            </a>
+            <span className="text-ash">·</span>
+            <span>Quotes are read from the chain; nothing is stored server-side.</span>
+            <span className="text-ash">·</span>
+            <span>Not affiliated with Uniswap Labs.</span>
+          </p>
         </div>
       </div>
     </footer>
