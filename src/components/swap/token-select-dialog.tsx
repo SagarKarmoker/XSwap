@@ -105,7 +105,7 @@ export function TokenSelectDialog({
               placeholder="Search name, symbol or paste an address"
               spellCheck={false}
               autoComplete="off"
-              className="h-12 w-full rounded-inputs bg-frost pr-3 pl-10 text-body text-midnight-ink outline-none placeholder:text-slate focus:bg-white focus:ring-2 focus:ring-vertex/60"
+              className="h-12 w-full rounded-inputs bg-frost pr-3 pl-10 text-body text-midnight-ink outline-none placeholder:text-slate focus:bg-white focus:ring-1 focus:ring-vertex/40"
             />
           </div>
           <button

@@ -12,6 +12,7 @@ pnpm dev          # http://localhost:5173
 pnpm build        # typecheck + production bundle
 pnpm preview      # serve the production build
 pnpm check:deployments   # prove every factory/quoter/router address still routes
+pnpm tokens:logos        # regenerate the verified token-logo map
 ```
 
 No API keys are required. The app falls back to public RPCs; see [Environment](#environment) if you want your own.
@@ -116,7 +117,18 @@ The accent hue is rotated from the reference system's hot pink to jade, keeping 
 Deliberately preserved from the reference: white canvas, 1px hairline borders instead of shadows (one near-invisible
 `10% black / 10px blur` is the only elevation), 20px radii, `-0.02em` tracking on every size, the mid-weight type ladder
 (485/535) rather than the usual 400/600, exactly one filled button per screen, and heavily-blurred colour orbs with a
-faint dot grid as the only atmosphere. Token marks are drawn, never fetched — no logo CDN, no image requests.
+faint dot grid as the only atmosphere.
+
+### Token logos
+
+Token marks are the tokens' **real, canonical logos**, not drawn stand-ins — `src/config/token-logos.ts` maps
+`chainId:address` to a verified asset URL (CoinGecko token lists, Uniswap's default token list, trustwallet/assets).
+`pnpm tokens:logos` regenerates that file and only keeps URLs that actually return an image, so a stale entry can never
+render as a broken image.
+
+Underneath every logo sits the drawn monogram (category colour + two glyphs), which takes over on load failure — and is
+what you see for a token that isn't in the map, such as any address you paste. Nothing 404s at runtime and nothing
+blocks on a logo request: images are lazy, and the fallback is in the DOM from the first paint.
 
 ---
 
@@ -137,8 +149,8 @@ Defaults are public endpoints wrapped in a `fallback` transport, so one slow nod
 
 ```
 src/
-├── config/        chains + verified DEX deployments, curated token registry, env
-├── lib/           router engine, ABIs, wagmi config, formatting, explorer links
+├── config/        chains + verified DEX deployments, curated token registry, verified logo map, env
+├── lib/           router engine, ABIs, wagmi config, logo lookup, formatting, explorer links
 ├── hooks/         quotes, token metadata/balances/allowance, execution, UI helpers
 ├── state/         swap form state (context), toasts
 ├── components/
@@ -148,7 +160,7 @@ src/
 │   ├── wallet/    connect dialog, account menu, chain switcher, sign-in
 │   ├── sections/  hero, markets, how-it-works
 │   └── ui/        buttons, dialog, popover, card, token icon, spinner
-└── scripts/       check-deployments.mts
+└── scripts/       check-deployments.mts, fetch-token-logos.mts
 ```
 
 ---
